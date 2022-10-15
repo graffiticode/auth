@@ -1,9 +1,14 @@
 import express from "express";
+import morgan from "morgan";
 import { fileURLToPath } from "url";
 
 export const createApp = () => {
   const app = express();
+  app.use(morgan("combined"));
+
+  // Routes
   app.get("/", (req, res) => res.sendStatus(200));
+
   return app;
 };
 
