@@ -1,6 +1,6 @@
 import { NotFoundError, UserExistsError } from "../errors/http.js";
 
-export const buildMemoryStorer = () => {
+export const buildMemoryUserStorer = () => {
   const db = new Map();
   return {
     findById: async (id) => {

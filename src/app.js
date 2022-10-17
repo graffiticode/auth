@@ -3,7 +3,7 @@ import morgan from "morgan";
 import { fileURLToPath } from "url";
 
 import { buildUserRouter } from "./routes/index.js";
-import { buildMemoryStorer } from "./storers/index.js";
+import { buildMemoryUserStorer } from "./storers/index.js";
 
 export const createApp = ({ userStorer }) => {
   const app = express();
@@ -18,7 +18,7 @@ export const createApp = ({ userStorer }) => {
 };
 
 const run = async () => {
-  const userStorer = buildMemoryStorer();
+  const userStorer = buildMemoryUserStorer();
 
   const app = createApp({ userStorer });
   const port = process.env.PORT || "4100";
