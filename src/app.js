@@ -3,7 +3,7 @@ import morgan from "morgan";
 import { fileURLToPath } from "url";
 
 import { buildUserRouter } from "./routes/index.js";
-import { buildMemoryUserStorer } from "./storers/index.js";
+import { createUserStorer } from "./storers/index.js";
 
 export const createApp = ({ userStorer }) => {
   const app = express();
@@ -18,11 +18,10 @@ export const createApp = ({ userStorer }) => {
 };
 
 const run = async () => {
-  const userStorer = buildMemoryUserStorer();
-
+  const userStorer = createUserStorer({ type: "firestore" });
   const app = createApp({ userStorer });
-  const port = process.env.PORT || "4100";
 
+  const port = process.env.PORT || "4100";
   app.listen(port, () => {
     console.log(`Listening on ${port}...`);
   });

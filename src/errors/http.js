@@ -20,7 +20,7 @@ export class InvalidArgumentError extends HttpError {
 }
 
 export class UserExistsError extends HttpError {
-  constructor(message) {
+  constructor(message = "user already exists") {
     super({ code: 4001, statusCode: 400, message });
   }
 }
