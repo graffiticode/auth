@@ -1,11 +1,27 @@
 import ethUtil from "@ethereumjs/util";
 import bent from "bent";
+import { initializeApp } from "firebase/app";
+import { getAuth, getIdToken, signInWithCustomToken } from "firebase/auth";
 import { randomBytes } from "node:crypto";
 
-const baseUrl = "http://localhost:4100";
+// const baseUrl = "http://localhost:4100";
+const baseUrl = "https://auth-sja7fatcta-uc.a.run.app";
 
 const getJson = bent(baseUrl, "GET", "json");
 const postJson = bent(baseUrl, "POST", "json");
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAoVuUNi8ElnS7cn6wc3D8XExML-URLw0I",
+  authDomain: "graffiticode.firebaseapp.com",
+  databaseURL: "https://graffiticode.firebaseio.com",
+  projectId: "graffiticode",
+  storageBucket: "graffiticode.appspot.com",
+  messagingSenderId: "656973052505",
+  appId: "1:656973052505:web:f3f3cc6397a844599c8f48",
+  measurementId: "G-KRPK1CDB19"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 const registerUser = async ({ address }) => {
   console.log({ uid: address });
@@ -44,8 +60,7 @@ const validateToken = async ({ token }) => {
   return data;
 };
 
-const run = async () => {
-  const privateKey = randomBytes(32);
+const run = async ({ privateKey }) => {
   const address = ethUtil.privateToAddress(privateKey).toString("hex");
 
   await registerUser({ address });
@@ -54,22 +69,18 @@ const run = async () => {
   const nonce = await getNonce({ address });
   console.log(`Nonce: ${nonce}`);
 
-  const { token } = await sendSignature({ privateKey, nonce });
-  const parts = token.split(".");
-  console.log(JSON.parse(Buffer.from(parts[0], "base64url").toString("ascii")));
-  console.log(JSON.parse(Buffer.from(parts[1], "base64url").toString("ascii")));
-  const body = {
-    ...JSON.parse(Buffer.from(parts[1], "base64url").toString("ascii")),
-    aud: "graffiticode",
-    iss: "https://securetoken.google.com/graffiticode",
-  };
-  console.log(body);
-  const newToken = `${parts[0]}.${Buffer.from(JSON.stringify(body), "ascii").toString("base64url")}.`
-  console.log(`Token: ${token}`);
-  console.log(`New Token: ${newToken}`);
+  const { token: customToken } = await sendSignature({ privateKey, nonce });
+  const userCred = await signInWithCustomToken(auth, customToken);
+  const token = await getIdToken(userCred.user);
 
-  const { uid } = await validateToken({ token: newToken });
+  const { uid } = await validateToken({ token });
   console.log(`Uid: ${uid}`);
 };
 
-run().catch(console.error);
+
+const runs = [];
+for (let i = 0; i < 1; i++) {
+  runs.push(run({ privateKey: randomBytes(32) }));
+}
+
+Promise.all(runs).catch(console.error);
