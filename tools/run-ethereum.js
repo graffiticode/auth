@@ -8,7 +8,8 @@ const getJson = bent(baseUrl, "GET", "json");
 const postJson = bent(baseUrl, "POST", "json");
 
 const registerUser = async ({ address }) => {
-  const { status, error, data } = await postJson(`/users/register`, { address });
+  console.log({ uid: address });
+  const { status, error, data } = await postJson(`/users/register`, { uid: address });
   if (status !== "success") {
     throw new Error(error.message);
   }
@@ -35,6 +36,14 @@ const sendSignature = async ({ privateKey, nonce }) => {
   return data;
 };
 
+const validateToken = async ({ token }) => {
+  const { status, error, data } = await postJson(`/validate`, { token });
+  if (status !== "success") {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
 const run = async () => {
   const privateKey = randomBytes(32);
   const address = ethUtil.privateToAddress(privateKey).toString("hex");
@@ -46,7 +55,21 @@ const run = async () => {
   console.log(`Nonce: ${nonce}`);
 
   const { token } = await sendSignature({ privateKey, nonce });
+  const parts = token.split(".");
+  console.log(JSON.parse(Buffer.from(parts[0], "base64url").toString("ascii")));
+  console.log(JSON.parse(Buffer.from(parts[1], "base64url").toString("ascii")));
+  const body = {
+    ...JSON.parse(Buffer.from(parts[1], "base64url").toString("ascii")),
+    aud: "graffiticode",
+    iss: "https://securetoken.google.com/graffiticode",
+  };
+  console.log(body);
+  const newToken = `${parts[0]}.${Buffer.from(JSON.stringify(body), "ascii").toString("base64url")}.`
   console.log(`Token: ${token}`);
+  console.log(`New Token: ${newToken}`);
+
+  const { uid } = await validateToken({ token: newToken });
+  console.log(`Uid: ${uid}`);
 };
 
 run().catch(console.error);

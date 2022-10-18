@@ -78,8 +78,10 @@ describe("routes/ethereum", () => {
       findById: jest.fn().mockResolvedValue({ address, nonce }),
       update: jest.fn()
     };
-    const tokenCreator = jest.fn().mockResolvedValue("token");
-    const app = createApp({ userStorer, tokenCreator });
+    const authProvider = {
+      create: jest.fn().mockResolvedValue("token")
+    };
+    const app = createApp({ userStorer, authProvider });
 
     const res = await request(app)
       .post(`/exchange/ethereum/${address}`)
@@ -91,7 +93,7 @@ describe("routes/ethereum", () => {
     expect(userStorer.update).toHaveBeenCalledWith(address, expect.objectContaining({
       nonce: expect.anything()
     }));
-    expect(tokenCreator).toHaveBeenCalledWith({ uid: address });
+    expect(authProvider.create).toHaveBeenCalledWith({ uid: address });
   });
 
   it("should validate signature for POST /signature without 0x prefix", async () => {
@@ -101,8 +103,10 @@ describe("routes/ethereum", () => {
       findById: jest.fn().mockResolvedValue({ address, nonce }),
       update: jest.fn()
     };
-    const tokenCreator = jest.fn().mockResolvedValue("token");
-    const app = createApp({ userStorer, tokenCreator });
+    const authProvider = {
+      create: jest.fn().mockResolvedValue("token")
+    };
+    const app = createApp({ userStorer, authProvider });
 
     const res = await request(app)
       .post(`/exchange/ethereum/${address}`)
@@ -114,6 +118,6 @@ describe("routes/ethereum", () => {
     expect(userStorer.update).toHaveBeenCalledWith(address, expect.objectContaining({
       nonce: expect.anything()
     }));
-    expect(tokenCreator).toHaveBeenCalledWith({ uid: address });
+    expect(authProvider.create).toHaveBeenCalledWith({ uid: address });
   });
 });

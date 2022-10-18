@@ -10,11 +10,11 @@ export const buildMemoryUserStorer = () => {
       return db.get(id);
     },
     create: async (user) => {
-      const { address, nonce } = user;
-      if (db.has(address)) {
+      const { uid, nonce } = user;
+      if (db.has(uid)) {
         throw new UserExistsError();
       }
-      db.set(address, { address, nonce });
+      db.set(uid, { uid, nonce });
     },
     update: async (id, update) => {
       if (!db.has(id)) {

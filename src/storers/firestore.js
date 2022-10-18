@@ -8,23 +8,23 @@ const buildFindById = ({ db }) => async (id) => {
     throw new NotFoundError(`${id} does not exist`);
   }
   const user = {
-    address: userDoc.get("address"),
+    uid: userDoc.get("uid"),
     nonce: userDoc.get("nonce")
   };
   return user;
 };
 
 const buildCreate = ({ db }) => async (user) => {
-  const { address, nonce } = user;
-  if (!isNonEmptyString(address)) {
-    throw new InvalidArgumentError("address must be a non empty string");
+  const { uid, nonce } = user;
+  if (!isNonEmptyString(uid)) {
+    throw new InvalidArgumentError("uid must be a non empty string");
   }
-  const userRef = db.doc(`users/${address}`);
+  const userRef = db.doc(`users/${uid}`);
   const userDoc = await userRef.get();
   if (userDoc.exists) {
     throw new UserExistsError();
   }
-  await userRef.set({ address, nonce });
+  await userRef.set({ uid, nonce });
 };
 
 const buildUpdate = ({ db }) => async (id, update) => {

@@ -2,11 +2,11 @@ import express from "express";
 import morgan from "morgan";
 import { fileURLToPath } from "url";
 
-import { buildArtCompilerRouter, buildEthereumRouter, buildUserRouter } from "./routes/index.js";
+import { buildArtCompilerRouter, buildEthereumRouter, buildUserRouter, buildValidateRouter } from "./routes/index.js";
 import { createUserStorer } from "./storers/index.js";
-import { createTokenCreator } from "./tokens/index.js";
+import { createAuthProvider } from "./auth/index.js";
 
-export const createApp = ({ userStorer, tokenCreator }) => {
+export const createApp = ({ userStorer, authProvider }) => {
   const app = express();
   app.use(morgan("combined"));
   app.use(express.json({ limit: "50mb" }));
@@ -14,8 +14,9 @@ export const createApp = ({ userStorer, tokenCreator }) => {
   // Routes
   app.get("/", (req, res) => res.sendStatus(200));
   app.use("/exchange/artcompiler", buildArtCompilerRouter({ userStorer }));
-  app.use("/exchange/ethereum", buildEthereumRouter({ userStorer, tokenCreator }));
+  app.use("/exchange/ethereum", buildEthereumRouter({ userStorer, authProvider }));
   app.use("/users", buildUserRouter({ userStorer }));
+  app.use("/validate", buildValidateRouter({ authProvider }));
 
   // Handle errors
   app.use((err, req, res, next) => {
@@ -28,8 +29,8 @@ export const createApp = ({ userStorer, tokenCreator }) => {
 
 const run = async () => {
   const userStorer = createUserStorer({ type: "firestore" });
-  const tokenCreator = createTokenCreator({ type: "firebase" });
-  const app = createApp({ userStorer, tokenCreator });
+  const authProvider = createAuthProvider({ type: "firebase" });
+  const app = createApp({ userStorer, authProvider });
 
   const port = process.env.PORT || "4100";
   app.listen(port, () => {

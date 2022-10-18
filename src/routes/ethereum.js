@@ -46,7 +46,7 @@ const extractSignatureAddress = ({ nonce, signature }) => {
   return ethUtil.publicToAddress(publicKey).toString("hex");
 };
 
-const buildPostSignature = ({ userStorer, tokenCreator }) => buildHttpHandler(async (req, res) => {
+const buildPostSignature = ({ userStorer, authProvider }) => buildHttpHandler(async (req, res) => {
   const { address } = req.params;
   if (!ethUtil.isValidAddress(ethUtil.addHexPrefix(address))) {
     throw new InvalidArgumentError(`invalid address: ${address}`);
@@ -68,14 +68,14 @@ const buildPostSignature = ({ userStorer, tokenCreator }) => buildHttpHandler(as
   await userStorer.update(address, { nonce: newNonce });
 
   // Create token
-  const token = await tokenCreator({ uid: address });
+  const token = await authProvider.create({ uid: address });
 
   res.status(200).json(createSuccessResponse({ token }));
 });
 
-export const buildEthereumRouter = ({ userStorer, tokenCreator }) => {
+export const buildEthereumRouter = ({ userStorer, authProvider }) => {
   const router = new Router();
   router.get("/:address", buildGetNonce({ userStorer }));
-  router.post("/:address", buildPostSignature({ userStorer, tokenCreator }));
+  router.post("/:address", buildPostSignature({ userStorer, authProvider }));
   return router;
 };

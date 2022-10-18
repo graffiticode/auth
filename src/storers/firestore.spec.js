@@ -20,17 +20,17 @@ describe("storers/firestore", () => {
     });
 
     it("should return user for id", async () => {
-      const address = "abc";
-      const user = { address, nonce: 123 };
+      const uid = "abc";
+      const user = { uid, nonce: 123 };
       await storer.create(user);
 
-      await expect(storer.findById(address)).resolves.toStrictEqual(user);
+      await expect(storer.findById(uid)).resolves.toStrictEqual(user);
     });
   });
 
   describe("create", () => {
     it("should throw UserExistsError for existing user", async () => {
-      const user = { address: "abc", nonce: 123 };
+      const user = { uid: "abc", nonce: 123 };
       await storer.create(user);
 
       await expect(storer.create(user)).rejects.toThrow(UserExistsError);
@@ -43,13 +43,13 @@ describe("storers/firestore", () => {
     });
 
     it("should update user", async () => {
-      const address = "abc";
-      const user = { address, nonce: 123 };
+      const uid = "abc";
+      const user = { uid, nonce: 123 };
       await storer.create(user);
 
-      await expect(storer.update(address, { nonce: 456 })).resolves.toBe();
+      await expect(storer.update(uid, { nonce: 456 })).resolves.toBe();
 
-      const actual = await storer.findById(address);
+      const actual = await storer.findById(uid);
       expect(actual).toHaveProperty("nonce", 456);
     });
   });
