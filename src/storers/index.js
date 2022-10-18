@@ -1,10 +1,10 @@
-import { buildFirestoreUserStorer, createFirestoreDb } from "./firestore.js";
+import { getFirestore } from "../firebase.js";
+import { buildFirestoreUserStorer } from "./firestore.js";
 import { buildMemoryUserStorer } from "./memory.js";
 
 export const createUserStorer = ({ type }) => {
   if (type === "firestore") {
-    const db = createFirestoreDb();
-    console.log(db.toJSON());
+    const db = getFirestore();
     return buildFirestoreUserStorer({ db });
   }
   if (type === "memory") {

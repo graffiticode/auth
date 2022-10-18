@@ -1,14 +1,15 @@
 import { NotFoundError, UserExistsError } from "../errors/http.js";
-import { buildFirestoreUserStorer, createFirestoreDb } from "./firestore.js";
+import { getFirestore } from "../firebase.js";
+import { buildFirestoreUserStorer } from "./firestore.js";
 
 describe("storers/firestore", () => {
   let storer;
   beforeEach(() => {
-    storer = buildFirestoreUserStorer({ db: createFirestoreDb() });
+    storer = buildFirestoreUserStorer({ db: getFirestore() });
   });
 
   afterEach(async () => {
-    const db = createFirestoreDb({});
+    const db = getFirestore();
     const cols = await db.listCollections();
     await Promise.all(cols.map(c => db.recursiveDelete(c)));
   });

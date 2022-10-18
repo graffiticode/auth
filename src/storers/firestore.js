@@ -1,4 +1,3 @@
-import admin from "firebase-admin";
 import { InvalidArgumentError, NotFoundError, UserExistsError } from "../errors/http.js";
 import { isNonEmptyString } from "../utils.js";
 
@@ -45,15 +44,3 @@ export const buildFirestoreUserStorer = ({ db }) => {
     update: buildUpdate({ db })
   };
 };
-
-const buildCreateFirestoreDb = () => {
-  let db;
-  return () => {
-    if (!db) {
-      admin.initializeApp();
-      db = admin.firestore();
-    }
-    return db;
-  };
-};
-export const createFirestoreDb = buildCreateFirestoreDb();
