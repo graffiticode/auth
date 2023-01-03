@@ -1,10 +1,8 @@
 import ethUtil from "@ethereumjs/util";
 import { Router } from "express";
 import { InvalidArgumentError, UnauthenticatedError } from "../errors/http.js";
-import { isNonEmptyString } from "../utils.js";
+import { generateNonce, isNonEmptyString } from "../utils.js";
 import { buildHttpHandler, createSuccessResponse } from "./utils.js";
-
-const generateNonce = () => Math.floor(Math.random() * 1000000);
 
 const buildGetNonce = ({ userStorer }) => buildHttpHandler(async (req, res) => {
   const { address } = req.params;
@@ -14,6 +12,12 @@ const buildGetNonce = ({ userStorer }) => buildHttpHandler(async (req, res) => {
   const user = await userStorer.findById(address);
   res.status(200).json(createSuccessResponse(user.nonce));
 });
+
+const createMessageHash = ({ nonce }) => {
+  const msg = `Nonce: ${nonce}`;
+  const msgBuffer = Buffer.from(msg, "ascii");
+  return ethUtil.hashPersonalMessage(msgBuffer);
+};
 
 const parseRpcSignature = ({ signature }) => {
   try {
@@ -33,14 +37,7 @@ const parseRpcSignature = ({ signature }) => {
   }
 };
 
-const createMessageHash = ({ nonce }) => {
-  const msg = `Nonce: ${nonce}`;
-  const msgBuffer = Buffer.from(msg, "ascii");
-  return ethUtil.hashPersonalMessage(msgBuffer);
-};
-
-const extractSignatureAddress = ({ nonce, signature }) => {
-  const sig = parseRpcSignature({ signature });
+const extractSignatureAddress = ({ nonce, sig }) => {
   const msgHash = createMessageHash({ nonce });
   const publicKey = ethUtil.ecrecover(msgHash, sig.v, sig.r, sig.s);
   return ethUtil.publicToAddress(publicKey).toString("hex");
@@ -56,18 +53,18 @@ const buildPostSignature = ({ userStorer, authProvider }) => buildHttpHandler(as
   if (!isNonEmptyString(signature)) {
     throw new InvalidArgumentError("must provide a signature");
   }
+  const sig = parseRpcSignature({ signature });
 
   const { nonce } = await userStorer.findById(address);
-  const signatureAddress = extractSignatureAddress({ nonce, signature });
+
+  const signatureAddress = extractSignatureAddress({ nonce, sig });
   if (address !== signatureAddress) {
     throw new UnauthenticatedError();
   }
 
-  // Update/roll nonce
-  const newNonce = generateNonce();
+  const newNonce = await generateNonce();
   await userStorer.update(address, { nonce: newNonce });
 
-  // Create token
   const token = await authProvider.create({ uid: address });
 
   res.status(200).json(createSuccessResponse({ token }));

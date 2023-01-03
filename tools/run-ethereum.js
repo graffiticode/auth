@@ -1,11 +1,11 @@
 import ethUtil from "@ethereumjs/util";
 import bent from "bent";
 import { initializeApp } from "firebase/app";
-import { getAuth, getIdToken, signInWithCustomToken } from "firebase/auth";
+import { connectAuthEmulator, getAuth, getIdToken, signInWithCustomToken } from "firebase/auth";
 import { randomBytes } from "node:crypto";
 
-// const baseUrl = "http://localhost:4100";
-const baseUrl = "https://auth-sja7fatcta-uc.a.run.app";
+const baseUrl = "http://localhost:4100";
+// const baseUrl = "https://auth-sja7fatcta-uc.a.run.app";
 
 const getJson = bent(baseUrl, "GET", "json");
 const postJson = bent(baseUrl, "POST", "json");
@@ -22,6 +22,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+connectAuthEmulator(auth, "http://localhost:9099");
 
 const registerUser = async ({ address }) => {
   console.log({ uid: address });
@@ -70,9 +71,10 @@ const run = async ({ privateKey }) => {
   console.log(`Nonce: ${nonce}`);
 
   const { token: customToken } = await sendSignature({ privateKey, nonce });
+  console.log(`Token: ${customToken}`);
+
   const userCred = await signInWithCustomToken(auth, customToken);
   const token = await getIdToken(userCred.user);
-
   const { uid } = await validateToken({ token });
   console.log(`Uid: ${uid}`);
 };

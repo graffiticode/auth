@@ -1,9 +1,7 @@
 import { Router } from "express";
 import { InvalidArgumentError } from "../errors/http.js";
-import { isNonEmptyString } from "../utils.js";
+import { generateNonce, isNonEmptyString } from "../utils.js";
 import { buildHttpHandler, createSuccessResponse } from "./utils.js";
-
-const generateNonce = () => Math.floor(Math.random() * 1000000);
 
 const buildUserGet = ({ userStorer }) => buildHttpHandler(async (req, res) => {
   const { uid } = req.params;
@@ -22,7 +20,7 @@ const buildUserRegister = ({ userStorer }) => buildHttpHandler(async (req, res) 
     throw new InvalidArgumentError("must provide a uid");
   }
 
-  const nonce = generateNonce();
+  const nonce = await generateNonce();
   const user = { uid, nonce };
   await userStorer.create(user);
 

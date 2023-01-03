@@ -2,8 +2,7 @@
 export const buildFirebaseAuthProvider = ({ auth }) => {
   return {
     create: async ({ uid }) => {
-      const user = await auth.createUser({ uid });
-      console.log(user);
+      await auth.createUser({ uid });
       return await auth.createCustomToken(uid);
     },
     verify: async ({ token }) => {
